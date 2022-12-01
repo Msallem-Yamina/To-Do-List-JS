@@ -1,20 +1,20 @@
-let input = document.querySelector("header input"),
+const input = document.querySelector("header input"),
     addbtn = document.querySelector("header .plus"),
     tasks = document.querySelector (".info-tasks"),
     tasksCount = document.querySelector (".all span"),
     tasksCmpleted = document.querySelector (".completed span"),
-    lc = JSON.parse(localStorage.getItem("tasks"));
-if (lc.length !== 0){
-    document.querySelector(".no-tasks").remove();
-      // Add Tasks of LocalStorage To info-tasks 
-      lc.forEach(el => {
-           AddTask(el);
-       });
-  }
+    lc = localStorage.getItem("tasks");
 // Focus On Input Field
 window.onload = function () {
     input.focus();
 };
+if (lc !== null){
+    document.querySelector(".no-tasks").remove();
+      // Add Tasks of LocalStorage To info-tasks 
+      JSON.parse(lc).forEach(el => {
+        AddTask(el);
+       });
+}
 // Add task
 addbtn.onclick = function(){
     if (input.value === ''){
@@ -29,14 +29,15 @@ addbtn.onclick = function(){
         if (document.body.contains(notasks)){
             // Remove No Tasks Message
             notasks.remove();
-        };
+        }
         // Add In section Info-tasks
         AddTask (input.value);
-        AddLocalS(input.value);
+        let lm = localStorage.getItem("tasks"),
+        j = JSON.parse(lm);
+        AddLocalS(tasks.lastChild.dataset.name,lm,j);
         // Test If New Task Exist In Tasks
         input.value = '';
         input.focus();
-        somTasks();
     };
 };
 // Delete and Finish Task
@@ -45,7 +46,9 @@ document.addEventListener ("click" , (e)=> {
         let p = e.target.parentElement;
         p.remove();
         // Remove In Local Storage
-        deleteLS(p);
+        var lm = localStorage.getItem("tasks"),
+        j = JSON.parse(lm);
+        deleteLS(p,lm,j);
         // Check Number Of Tasks Inside The Container 
         if (tasks.childElementCount === 0) {
             Notask();
@@ -57,23 +60,24 @@ document.addEventListener ("click" , (e)=> {
     somTasks();
 });
 let items = [];
-function AddLocalS (id){
+function AddLocalS (id,lm,j){
     // Test L'existence of Tasks In Local Storage 
-    if (lc.length === 0 ){
+    if (lm === null ){
         items.push(id);
         localStorage.setItem("tasks" , JSON.stringify(items));
     }else {
         // Search l'existence of Task  in local storage  
-        if (lc.indexOf(id) === -1){
-            lc.push(id);
-            localStorage.setItem("tasks" , JSON.stringify(lc));
+        if (j.indexOf(id) === -1){
+            j.push(id);
+            localStorage.setItem("tasks" , JSON.stringify(j));
         };
     }
 };
-function deleteLS (box){
-    // Search Position Span In lc With indexOf and Delete Him Span From Local Storage 
-    lc.splice(lc.indexOf(box.id),1);
-    localStorage.setItem("tasks" , JSON.stringify(lc));
+function deleteLS (box,lm,j){
+    // Search Position Span In lm With indexOf and Delete Him Span From Local Storage 
+    j.splice(lm.indexOf(box.id),1);
+    localStorage.setItem("tasks" , JSON.stringify(j));
+    if (j.length === 0) {localStorage.clear()};
 }
 function AddTask (task){
     let span = document.createElement("span");
@@ -83,10 +87,11 @@ function AddTask (task){
     del.className = "delete";
     del.appendChild(document.createTextNode("Delete"));
     span.appendChild(del);
-    span.setAttribute ("id", task);
+    span.setAttribute ("data-name", task);
     let arr = Array.from(document.querySelectorAll(".task-box"));
     let found = arr.find (el =>
-        el.id === task);
+        el.dataset.name === task
+    )
    if (found === undefined){
        tasks.appendChild(span);
     }else {
@@ -96,6 +101,7 @@ function AddTask (task){
            icon: 'warning'
        });
    };
+   somTasks();
 };
 function somTasks(){
  // All Tasks
